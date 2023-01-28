@@ -1,5 +1,6 @@
 import jwt
 from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
 
 import uvicorn
 import psycopg2
@@ -7,6 +8,8 @@ from fastapi import FastAPI
 
 app = FastAPI()
 key = "egiovanni"
+
+load_dotenv()
 
 
 @app.get("/")
@@ -42,8 +45,8 @@ async def root(token = '', cp: str = '01001'):
 
         conn = psycopg2.connect(
             database="railway",
-            user='postgres',
-            password='OoYIQGsQKPQwpk1g8lT3',
+            user=os.getenv('POSTGRESQL_USER'),
+            password=os.getenv('POSTGRESQL_PASSWORD'),
             host='containers-us-west-186.railway.app',
             port= '6502'
         )
@@ -86,8 +89,8 @@ async def root(token = '', colonia = '', municipio = '', estado = ''):
 
         conn = psycopg2.connect(
             database="railway",
-            user='postgres',
-            password='OoYIQGsQKPQwpk1g8lT3',
+            user=os.getenv('POSTGRESQL_USER'),
+            password=os.getenv('POSTGRESQL_PASSWORD'),
             host='containers-us-west-186.railway.app',
             port= '6502'
         )
@@ -148,8 +151,8 @@ async def root(token = '', colonia = '', estado = '', mnpio = ''):
 
         conn = psycopg2.connect(
             database="railway",
-            user='postgres',
-            password='OoYIQGsQKPQwpk1g8lT3',
+            user=os.getenv('POSTGRESQL_USER'),
+            password=os.getenv('POSTGRESQL_PASSWORD'),
             host='containers-us-west-186.railway.app',
             port= '6502'
         )
