@@ -1,8 +1,12 @@
+import jwt
+from datetime import datetime, timedelta, timezone
+
 import uvicorn
 import psycopg2
 from fastapi import FastAPI
 
 app = FastAPI()
+key = "egiovanni"
 
 
 @app.get("/")
@@ -10,9 +14,32 @@ async def root():
     return {"message": "Get SEPOMEX Data"}
 
 
-@app.get("/search-by-cp/")
-async def root(cp: str = '01001'):
+@app.get("/generate-user/")
+async def root(user = ''):
     try:
+        if user == '':
+            return {"error": "Necesita proporcionar user para poder generar una key"}
+        token = jwt.encode(
+            {
+                'Username': user,
+                "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=15)
+            },
+            key,
+            algorithm="HS256"
+        )
+        return {"key": token}
+    except:
+        return {"error": "Error en la generacion de la key"}
+
+
+@app.get("/search-by-cp/")
+async def root(token = '', cp: str = '01001'):
+    try:
+        try:
+            jwt.decode(token, key, algorithms="HS256")
+        except:
+            return {"error": "Token invalido, favor de verificar"}
+
         conn = psycopg2.connect(
             database="railway",
             user='postgres',
@@ -42,12 +69,21 @@ async def root(cp: str = '01001'):
             'error': 'error durante la busqueda'
         }
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except:
+            print('La conexion ya fue cerrada')
 
 
 @app.get("/search-by-text/")
-async def root(colonia = '', municipio = '', estado = ''):
+async def root(token = '', colonia = '', municipio = '', estado = ''):
+    jwt.decode(token, key, algorithms="HS256")
     try:
+        try:
+            jwt.decode(token, key, algorithms="HS256")
+        except:
+            return {"error": "Token invalido, favor de verificar"}
+
         conn = psycopg2.connect(
             database="railway",
             user='postgres',
@@ -97,11 +133,19 @@ async def root(colonia = '', municipio = '', estado = ''):
             'error': 'error durante la busqueda parcial'
         }
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except:
+            print('La conexion ya fue cerrada')
 
 @app.post("/add-new-colonia/")
-async def root(colonia, estado, mnpio):
+async def root(token = '', colonia = '', estado = '', mnpio = ''):
     try:
+        try:
+            jwt.decode(token, key, algorithms="HS256")
+        except:
+            return {"error": "Token invalido, favor de verificar"}
+
         conn = psycopg2.connect(
             database="railway",
             user='postgres',
@@ -163,7 +207,10 @@ async def root(colonia, estado, mnpio):
             'error': 'error durante la insercion'
         }
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except:
+            print('La conexion ya fue cerrada')
 
 if __name__ == '__main__':
     try:
@@ -173,4 +220,7 @@ if __name__ == '__main__':
             port=6757,
         )
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except:
+            print('La conexion ya fue cerrada')
